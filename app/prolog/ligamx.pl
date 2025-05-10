@@ -5041,62 +5041,195 @@ pertenece_a(alex_valencia, santos).
 % -------------------------------
 % REGLAS PRINCIPALES DE RECOMENDACIÓN
 % -------------------------------
-
 % Sistema experto para recomendar jugadores según estilo de juego y necesidades
-recomendar_jugador(Jugador, Equipo, Posicion, Estilo) :-
-    jugador(Jugador, _, Posicion, Edad),
-    pertenece_a(Jugador, Equipo),
+% recomendar_jugador(X, r0, r1, r2, r3, r4, r5, r6, r7, Z) r = respuesta del usuario
 
-    cumple_estilo(Jugador, Estilo),
-    cumple_edad_posicion(Edad, Posicion),
-    tiene_consistencia(Jugador)
+recomendar_jugador(Jugador, MiEquipo, Estilo, Habilidad, Rendimiento, Disciplina, EsTitular, Perfil, JovenPromesa, Equipo) :-
+    % Hay que usar distinct() para evitar duplicados
+    
+    % El Guadalajara juega sólo con jugadores mexicanos
+    (MiEquipo = guadalajara ->
+    jugador(Jugador, mex, _, _)
+    ;
+    jugador(Jugador, _, _, _)
+    ),
+    
+    pertenece_a(Jugador, Equipo),
+    MiEquipo \= Equipo,
+
+    % Reglas a consultar
+    distinct(cumple_estilo(Jugador, Estilo)),
+    distinct(habilidad(Jugador, Habilidad)), 
+    distinct(rendimiento_por_partido(Jugador, Rendimiento)),
+    
+    distinct(disciplina(Jugador, Disciplina)),
+
+    % si_titular
+    (EsTitular =  si_titular ->
+       distinct(tiene_consistencia(Jugador)) ;
+      true),
+
+    distinct(perfil_jugador(Jugador, Perfil)), 
+
+    % Si JovenPromesa es "si_joven_promesa", entonces ejecuta jugador_potencial_alto
+    (JovenPromesa = si_joven_promesa -> 
+        distinct(jugador_potencial_alto(Jugador, Perfil)) ; 
+        true)
+
+    % DEBUG: Fin de la regla
     .
+
+
+
+% -------------------------------
+% HABILIDADES TÉCNICAS
+% -------------------------------
+
+habilidad(Jugador, goleador_eficiente) :-
+    por_90_minutos(Jugador, Goles90, _, _, _, _, _, _, _, _, _),
+    Goles90 >= 0.30. 
+
+habilidad(Jugador, asistente_creativo) :-
+    por_90_minutos(Jugador, _, Asistencias90, _, _, _, _, _, _, _, _),
+    Asistencias90 >= 0.25.
+
+habilidad(Jugador, progresor_balon) :-
+    progresion(Jugador, AcarreosProgresivos, PasesProgresivos, _),
+    AcarreosProgresivos >= 30,
+    PasesProgresivos >= 50.
+
+habilidad(Jugador, constructor_juego) :-
+    progresion(Jugador, _, PasesProgresivos, _),
+    PasesProgresivos >= 75.
+
+habilidad(Jugador, receptor_clave) :-
+    progresion(Jugador, _, _, Recibos),
+    Recibos >= 120.
+
+% -------------------------------
+% NIVEL DE RENDIMIENTO
+% -------------------------------
+rendimiento_por_partido(Jugador, goles_altos) :-
+    por_90_minutos(Jugador, GolesPer90, _, _, _, _, _, _, _, _, _),
+    GolesPer90 >= 0.4.
+
+rendimiento_por_partido(Jugador, eficiencia_goleadora) :-
+    por_90_minutos(Jugador, Goles90, _, _, _, _, _, _, _, _, _),
+    Goles90 >= 0.2.
+
+rendimiento_por_partido(Jugador, asistencias_altas) :-
+    por_90_minutos(Jugador, _, AsistenciasPer90, _, _, _, _, _, _, _, _),
+    AsistenciasPer90 >= 0.18.
+
+rendimiento_por_partido(Jugador, eficiencia_asistente) :-
+    por_90_minutos(Jugador, _, Asistencias90, _, _, _, _, _, _, _, _),
+    Asistencias90 > 0.08. 
+
+% ----------------------------------------
+% REGLAS PARA EVALUAR EL NIVEL DE DISCIPLINA
+% ----------------------------------------
+disciplina(Jugador, disciplina_excepcional) :-
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, Rojas),
+    Amarillas =< 1,
+    Rojas == 0.
+    
+disciplina(Jugador, disciplina_buena) :-
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, Rojas),
+    Amarillas =< 3,
+    Rojas =< 1.
+
+disciplina(Jugador, disciplina_moderada) :-
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, Rojas),
+    Amarillas =< 4,
+    Rojas =< 2.
+
+disciplina(Jugador, disciplina_baja) :-
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, Rojas),
+    Amarillas >= 0,
+    Rojas >= 0.
+
+% -------------------------------
+% REGLAS PERFIL OFENSIVO O DEFENSIVO
+% -------------------------------
+% PERFIL OFENSIVO: jugadores con alta contribución en goles y asistencias
+perfil_jugador(Jugador, perfil_ofensivo) :-
+    por_90_minutos(Jugador, Goles, Asistencias, _, _, _, _, _, _, _, _),
+    jugador(Jugador, _, Posicion, _),
+    Total is Goles + Asistencias,
+    Posicion \= po,
+    Total >= 0.5.
+
+% PERFIL DEFENSIVO: jugadores con bajo aporte ofensivo y alto tiempo jugado
+perfil_jugador(Jugador, perfil_defensivo) :-
+    por_90_minutos(Jugador, Goles, Asistencias, _, _, _, _, _, _, _, _),
+    jugador(Jugador, _, Posicion, _),
+    Total is Goles + Asistencias,
+    Total < 0.9,  % Bajo aporte ofensivo
+    tiempo_jugado(Jugador, _, _, Minutos, _),
+    Posicion \= po,
+    Posicion \= dl,
+    Minutos >= 900.  % Alta participación, resistencia física
+
+% PERFIL BALANCEADO: jugadores con aporte ofensivo y defensivo moderado
+perfil_jugador(Jugador, perfil_balanceado) :-
+    por_90_minutos(Jugador, Goles, Asistencias, _, _, _, _, _, _, _, _),
+    jugador(Jugador, _, Posicion, _),
+    Total is Goles + Asistencias,
+    Total >= 0.2,
+    Total < 0.5,
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, Rojas),
+    tiempo_jugado(Jugador, PJ, _, _, _),
+    Amarillas =< (PJ * 0.4),
+    Posicion \= po,
+    Rojas =< 1.
+
+% --------------------------------------------
+% REGLAS PARA JUGADORES DE ALTO POTENCIAL NO EXPLOTADO (JOVEN PROMESA)
+% --------------------------------------------
+jugador_potencial_alto(Jugador, Perfil) :-
+    jugador(Jugador, _, _, Edad),
+    perfil_jugador(Jugador, Perfil),
+    Edad =< 22.
 
 % -------------------------------
 % REGLAS DE COMPATIBILIDAD CON ESTILOS
 % -------------------------------
 
 cumple_estilo(Jugador, posesion) :-
-    progresion(Jugador, _, ProgPasses, _),
-    por_90_minutos(Jugador, _, _, _, _, _, XG90, _, _, _, _),
-    ProgPasses >= 75,
-    XG90 =< 0.3
-    .
+    progresion(Jugador, _, _, Recibos),
+    tiempo_jugado(Jugador, _, _, Minutos, _),
+    Minutos >= 750,
+    Recibos >= 75.
 
 cumple_estilo(Jugador, contraataque) :-
     progresion(Jugador, ProgCarries, _, _),
-    por_90_minutos(Jugador, Goles90, _, _, _, _, _, _, _, _, _),
-    ProgCarries >= 80,
-    Goles90 >= 0.35,
-    Vel >= 32.
+    ProgCarries >= 15.
 
-% -------------------------------
-% REGLAS AVANZADAS DE RENDIMIENTO
-% -------------------------------
+cumple_estilo(Jugador, defensa_solida) :-
+    jugador(Jugador, _, Pos, _),
+    member(Pos, [df, li, lt, ld]),
+    rendimiento(Jugador, _, _, _, _, _, _, Amarillas, _),
+    tiempo_jugado(Jugador, PJ, _, _, _),
+    progresion(Jugador, _, ProgPasses, _),
+    ProgPasses >= 100,
+    (Amarillas / PJ) =< 0.4.
+    
+cumple_estilo(Jugador, creacion_central) :-
+    progresion(Jugador, _, ProgPasses, _),
+    ProgPasses >= 60.
 
-% Jugador infravalorado (alto potencial no explotado)
-diamante_bruto(Jugador) :-
-    por_90_minutos(Jugador, G, A, _, _, _, XG, XAG, _, _, _),
-    TotalEsperado is XG + XAG,
-    TotalReal is G + A,
-    TotalEsperado >= 0.8,
-    TotalReal < TotalEsperado * 0.7,
-    rendimiento(Jugador, _, _, _, _, _, _, _),
-    progresion(Jugador, _, PrgPasses, _),
-    PrgPasses >= 70.
+cumple_estilo(Jugador, pivote_defensivo) :-
+    jugador(Jugador, _, Pos, _),
+    member(Pos, [cc, mcd, mc]).
 
-% -------------------------------
-% REGLAS DE VALIDACIÓN CONTEXTUAL
-% -------------------------------
-
+% ------------------------------------
+% SI EL JUGADOR ES TITULAR REGULARMENTE EN SU EQUIPO
+% ------------------------------------
 tiene_consistencia(Jugador) :-
-    tiempo_jugado(Jugador, PJ, Titulares, _, _),
-    PJ >= 15,
-    (Titulares / PJ) >= 0.7.
+    tiempo_jugado(Jugador, _, Titulares, _, _),
+    Titulares >= 18.
 
-cumple_edad_posicion(Edad, Pos) :-
-    (member(Pos, [po, df]) -> Edad >= 22, Edad =< 32;
-     member(Pos, [mc, dc]) -> Edad >= 20, Edad =< 28).
+%--------------------------REVISAR REGLA----------------------------------
 
 % -------------------------------
 % SISTEMA DE EXPLICACIÓN (para interfaz web)

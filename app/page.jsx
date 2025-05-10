@@ -1,117 +1,376 @@
-import Image from "next/image";
+'use client';
 
+import { useState } from 'react';
+import { ChevronRight, User, UserPlus, Shield, ShieldCheck, Goal, Star, ArrowLeft, Download, Info } from 'lucide-react';
 
-export const dynamic = 'force-static'
- 
-export async function GET() {
-  const res = await fetch('/api/route.js', {
-    headers: {
-      'Content-Type': 'application/json',
-      'API-Key': process.env.DATA_API_KEY,
+export default function RecomendadorJugadores() {
+  // Estado para controlar la pregunta actual
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+
+  // Estado para controlar si estamos en la página de resultados
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  // Lista de preguntas y sus respectivas opciones
+  const questions = [
+    { // Pregunta 0
+      pregunta: "¿Qué equipo quieres reforzar?",
+      opciones: [
+        { texto: "América", icono: <Goal size={24} />, valor: "america" },
+        { texto: "Atlas", icono: <Goal size={24} />, valor: "atlas" },
+        { texto: "Atlético de San Luis", icono: <Goal size={24} />, valor: "atletico" },
+        { texto: "Cruz Azul", icono: <UserPlus size={24} />, valor: "cruz_azul" },
+        { texto: "FC Juárez", icono: <User size={24} />, valor: "fc_juarez" },
+        { texto: "Guadalajara", icono: <Goal size={24} />, valor: "guadalajara" },
+        { texto: "León", icono: <Goal size={24} />, valor: "leon" },
+        { texto: "Mazatlán FC", icono: <Goal size={24} />, valor: "mazatlan_fc" },
+        { texto: "Monterrey", icono: <Goal size={24} />, valor: "monterrey" },
+        { texto: "Necaxa", icono: <Goal size={24} />, valor: "necaxa" },
+        { texto: "Pachuca", icono: <Goal size={24} />, valor: "pachuca" },
+        { texto: "Puebla", icono: <Goal size={24} />, valor: "puebla" },
+        { texto: "UNAM", icono: <Goal size={24} />, valor: "unam" },
+        { texto: "Querétaro", icono: <Goal size={24} />, valor: "queretaro" },
+        { texto: "Santos", icono: <Goal size={24} />, valor: "santos" },
+        { texto: "UANL", icono: <Goal size={24} />, valor: "uanl" },
+        { texto: "Tijuana", icono: <Goal size={24} />, valor: "tijuana" },
+        { texto: "Toluca", icono: <Goal size={24} />, valor: "toluca" },
+      ]
     },
-  })
-  const data = await res.json()
- 
-  return Response.json({ data })
-}
 
-export default function Home() {
+    { // Pregunta 1
+      pregunta: "¿Cuál es el estilo de juego predominante del equipo?",
+      opciones: [
+        { texto: "Posesión y control del balón", icono: <Goal size={24} />, valor: "posesion" },
+        { texto: "Contraataque rápido", icono: <UserPlus size={24} />, valor: "contraataque" },
+        { texto: "Juego defensivo y sólido", icono: <UserPlus size={24} />, valor: "defensa_solida" },
+        { texto: "Creador de juego", icono: <UserPlus size={24} />, valor: "creacion_central" },
+        { texto: "Pivote defensivo", icono: <UserPlus size={24} />, valor: "pivote_defensivo" },
+      ]
+    },
+
+    { // Pregunta 2
+      pregunta: "¿Qué habilidad técnicas valoras más en el jugador?",
+      opciones: [
+        { texto: "Precisión en el pase", icono: <Goal size={24} />, valor: "goleador_eficiente" },
+        { texto: "Visión y asistencia", icono: <UserPlus size={24} />, valor: "asistente_creativo" },
+        { texto: "Conducción efectiva", icono: <User size={24} />, valor: "progresor_balon" },
+        { texto: "Salida limpia desde atrás", icono: <ShieldCheck size={24} />, valor: "constructor_juego" },
+        { texto: "Desmarque inteligente", icono: <ShieldCheck size={24} />, valor: "receptor_clave" },
+      ]
+    },
+    {// Pregunta 3
+      pregunta: "¿Qué nivel de rendimiento esperas en goles o asistencias por partido?",
+      opciones: [
+        { texto: "Gran capacidad goleadora", icono: <User size={24} />, valor: "goles_altos" },
+        { texto: "Goleador promedio", icono: <User size={24} />, valor: "eficiencia_goleadora" },
+        { texto: "Alta producción de asistencias", icono: <User size={24} />, valor: "asistencias_altas" },
+        { texto: "Asistente promedio", icono: <User size={24} />, valor: "eficiencia_asistente" }
+      ]
+    },
+
+    {// Pregunta 4
+      pregunta: "¿Qué tan importante es para ti la discipina del jugador en la cancha?",
+      opciones: [
+        { texto: "Muy importante", icono: <User size={24} />, valor: "disciplina_excepcional" },
+        { texto: "Importante", icono: <User size={24} />, valor: "disciplina_buena" },
+        { texto: "Moderado", icono: <User size={24} />, valor: "disciplina_moderada" },
+        { texto: "No muy importante", icono: <User size={24} />, valor: "disciplina_baja" }
+      ]
+    },
+    { // Pregunta 5
+      pregunta: "¿Consideras que el jugador debe ser titular en su actual equipo?",
+      opciones: [
+        { texto: "Sí", icono: <User size={24} />, valor: "si_titular" },
+        { texto: "No", icono: <User size={24} />, valor: "no_titular" },
+      ]
+    },
+    { // Pregunta 6
+      pregunta: "¿Qué perfil de jugador requiere tu equipo?",
+      opciones: [
+        { texto: "Perfil ofensivo", icono: <User size={24} />, valor: "perfil_ofensivo" },
+        { texto: "Perfil defensivo", icono: <User size={24} />, valor: "perfil_defensivo" },
+        { texto: "Perfil balanceado", icono: <User size={24} />, valor: "perfil_balanceado" },
+      ]
+    },
+    { // Pregunta 7
+      pregunta: "¿Quieres sólo jugadores con alto potencial pero que aún no explotan todo su rendimiento (joven promesa)?",
+      opciones: [
+        { texto: "Sí", icono: <User size={24} />, valor: "si_joven_promesa" },
+        { texto: "No", icono: <User size={24} />, valor: "no_joven_promesa" }
+      ]
+    },
+  ];
+
+  // Base de datos simulada de jugadores recomendados
+  const jugadoresRecomendados = {
+    "delantero": [
+      {
+        nombre: "Carlos Vela",
+        imagen: "/api/placeholder/300/300",
+        edad: 25,
+        nacionalidad: "México",
+        equipo: "LAFC",
+        valor: "12M USD",
+        descripcion: "Delantero veloz con excelente definición y regate. Especialista en tiros libres y disparos desde fuera del área."
+      },
+      {
+        nombre: "Raúl Jiménez",
+        imagen: "/api/placeholder/300/300",
+        edad: 29,
+        nacionalidad: "México",
+        equipo: "Fulham",
+        valor: "18M USD",
+        descripcion: "Delantero potente con gran juego aéreo. Excelente pivote y capacidad para asociarse con los mediocampistas."
+      },
+      {
+        nombre: "Santiago Giménez",
+        imagen: "/api/placeholder/300/300",
+        edad: 21,
+        nacionalidad: "México",
+        equipo: "Feyenoord",
+        valor: "8M USD",
+        descripcion: "Joven promesa con gran capacidad goleadora. Rápido y con buen posicionamiento en el área."
+      }
+    ],
+    "medio-ofensivo": [
+      {
+        nombre: "Diego Lainez",
+        imagen: "/api/placeholder/300/300",
+        edad: 22,
+        nacionalidad: "México",
+        equipo: "Tigres",
+        valor: "7M USD",
+        descripcion: "Mediocampista habilidoso con gran capacidad de desborde y visión de juego. Especialista en el último pase."
+      },
+      {
+        nombre: "Orbelín Pineda",
+        imagen: "/api/placeholder/300/300",
+        edad: 26,
+        nacionalidad: "México",
+        equipo: "AEK Atenas",
+        valor: "9M USD",
+        descripcion: "Mediocampista versátil con llegada al área y buen disparo de media distancia. Trabajador en ambas fases del juego."
+      }
+    ]
+  };
+
+  // Datos para otras posiciones podrían agregarse de manera similar
+
+  // Estado para almacenar las respuestas del usuario
+  const [respuestas, setRespuestas] = useState({});
+
+  // Función para manejar la selección de una opción
+  const handleSeleccion = (valor) => {
+    // Guardar la respuesta actual
+    const nuevasRespuestas = {
+      ...respuestas,
+      [currentQuestion]: valor
+    };
+    setRespuestas(nuevasRespuestas);
+
+    // Avanzar a la siguiente pregunta o mostrar resultado
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Mostrar la página de resultados
+      console.log("Respuestas finales:", nuevasRespuestas);
+      let consulta = `recomendar_jugador(Jugador, ${nuevasRespuestas[0]}, ${nuevasRespuestas[1]}, ${nuevasRespuestas[2]}, ${nuevasRespuestas[3]}, ${nuevasRespuestas[4]}, ${nuevasRespuestas[5]}, ${nuevasRespuestas[6]}, ${nuevasRespuestas[7]}, Equipo)`;
+      // console.log(`formato para prolog: ${consulta}`)
+      console.log("Consulta Prolog:", consulta);
+      setMostrarResultados(true);
+    }
+  };
+
+  // Función para reiniciar el cuestionario
+  const handleReiniciar = () => {
+    setCurrentQuestion(0);
+    setRespuestas({});
+    setMostrarResultados(false);
+  };
+
+  // Obtener jugadores recomendados basados en las respuestas
+  const obtenerJugadoresRecomendados = () => {
+    // Obtener la posición seleccionada (respuesta a la primera pregunta)
+    const posicion = respuestas[0];
+
+    // En una implementación real, filtrarías por edad y presupuesto también
+    return jugadoresRecomendados[posicion] || [];
+  };
+
+  // Obtener la pregunta actual
+  const preguntaActual = questions[currentQuestion];
+
+  // Función para traducir el valor de la respuesta a texto legible
+  const traducirRespuesta = (indice, valor) => {
+    const opcion = questions[indice]?.opciones.find(opt => opt.valor === valor);
+    return opcion ? opcion.texto : valor;
+  };
+
+  // Logo de Liga MX
+  const LogoLigaMX = () => (
+    <div className="w-16">
+      <svg viewBox="0 0 100 50" className="w-full">
+        <g>
+          <path d="M50,5 L70,25 L50,45 L30,25 Z" fill="#E2231A" />
+          <path d="M20,5 L40,25 L20,45 L0,25 Z" fill="#7D7F82" />
+          <path d="M80,5 L100,25 L80,45 L60,25 Z" fill="#7D7F82" />
+          <path d="M50,10 L60,25 L50,40 L40,25 Z" fill="#62C06F" />
+        </g>
+      </svg>
+    </div>
+  );
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      {/* Header con logo y título */}
+      <header className="bg-white shadow-md p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Recomendador de jugadores</h1>
+        <LogoLigaMX />
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+      {/* Contenido principal */}
+      <main className="flex-1 container mx-auto p-4 md:p-8">
+        {!mostrarResultados ? (
+          <>
+            {/* Indicador de progreso */}
+            <div className="mb-6">
+              <div className="h-2 bg-gray-200 rounded-full mb-2">
+                <div
+                  className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-500 ease-in-out"
+                  style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                />
+              </div>
+              <div className="text-sm text-gray-600 text-right">
+                Paso {currentQuestion + 1} de {questions.length}
+              </div>
+            </div>
+
+            {/* Pregunta actual */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transform transition-all duration-500">
+              <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+                {preguntaActual.pregunta}
+              </h2>
+
+              {/* Opciones de respuesta */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {preguntaActual.opciones.map((opcion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSeleccion(opcion.valor)}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg p-4 flex items-center justify-between transition-all duration-300 hover:shadow-md hover:scale-105 group"
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-3 text-green-600">
+                        {opcion.icono}
+                      </div>
+                      <span className="font-medium">{opcion.texto}</span>
+                    </div>
+                    <ChevronRight className="opacity-0 group-hover:opacity-100 transition-opacity text-green-600" size={20} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Página de resultados */}
+            <div className="mb-8">
+              <button
+                onClick={handleReiniciar}
+                className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <ArrowLeft size={18} className="mr-1" />
+                <span>Volver al inicio</span>
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+              <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
+                Resultados finales
+              </h2>
+
+              {/* Resumen de las selecciones */}
+              <div className="bg-gray-100 rounded-lg p-4 mb-8">
+                <h3 className="text-lg font-semibold mb-3 text-gray-700">Tus selecciones:</h3>
+                <ul className="space-y-2">
+                  {Object.keys(respuestas).map((key) => (
+                    <li key={key} className="flex items-center text-gray-700">
+                      <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center mr-3 text-xs font-bold">
+                        {parseInt(key) + 1}
+                      </div>
+                      <span className="font-medium">{questions[key].pregunta}</span>
+                      <span className="mx-2">→</span>
+                      <span>{traducirRespuesta(parseInt(key), respuestas[key])}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Jugadores recomendados */}
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Jugadores recomendados</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {obtenerJugadoresRecomendados().map((jugador, index) => (
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                    <div className="relative">
+                      <img
+                        src={jugador.imagen}
+                        alt={jugador.nombre}
+                        className="w-full h-64 object-cover"
+                      />
+                      <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 m-2 rounded-full text-sm font-bold">
+                        {jugador.valor}
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h4 className="text-xl font-bold mb-1">{jugador.nombre}</h4>
+                      <div className="flex items-center mb-2 text-gray-600">
+                        <span>{jugador.edad} años</span>
+                        <span className="mx-2">•</span>
+                        <span>{jugador.nacionalidad}</span>
+                        <span className="mx-2">•</span>
+                        <span>{jugador.equipo}</span>
+                      </div>
+                      <p className="text-gray-700 mb-4">{jugador.descripcion}</p>
+                      <div className="flex justify-between">
+                        <button className="flex items-center text-blue-600 hover:text-blue-800 transition-colors">
+                          <Info size={16} className="mr-1" />
+                          <span className="text-sm">Más detalles</span>
+                        </button>
+                        <button className="flex items-center text-green-600 hover:text-green-800 transition-colors">
+                          <Download size={16} className="mr-1" />
+                          <span className="text-sm">Ficha técnica</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Explicación de la elección */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Explicación de la elección de los jugadores
+              </h2>
+              <div className="prose max-w-none text-gray-700">
+                <p>Los jugadores recomendados han sido seleccionados considerando los siguientes criterios basados en tus preferencias:</p>
+                <ul className="list-disc pl-6 mt-4 space-y-2">
+                  <li><strong>Posición:</strong> Se han filtrado jugadores que se desempeñan principalmente como {traducirRespuesta(0, respuestas[0])}.</li>
+                  <li><strong>Rango de edad:</strong> Priorizamos jugadores que se encuentran en el rango de {traducirRespuesta(1, respuestas[1])}.</li>
+                  <li><strong>Presupuesto:</strong> Los jugadores recomendados se ajustan a un presupuesto {traducirRespuesta(2, respuestas[2])}.</li>
+                  <li><strong>Rendimiento reciente:</strong> Se han considerado estadísticas de las últimas temporadas para evaluar su consistencia y proyección.</li>
+                  <li><strong>Adaptabilidad:</strong> Se ha valorado su capacidad para adaptarse a la Liga MX y al fútbol mexicano.</li>
+                </ul>
+                <p className="mt-4">Esta selección se ha realizado analizando datos estadísticos de diversas ligas internacionales y el mercado actual de traspasos.</p>
+              </div>
+            </div>
+          </>
+        )}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white text-center p-4 text-sm">
+        © {new Date().getFullYear()} Liga MX Recomendador de Jugadores
       </footer>
     </div>
   );
