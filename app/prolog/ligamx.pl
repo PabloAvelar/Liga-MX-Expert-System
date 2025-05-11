@@ -5042,9 +5042,9 @@ pertenece_a(alex_valencia, santos).
 % REGLAS PRINCIPALES DE RECOMENDACIÓN
 % -------------------------------
 % Sistema experto para recomendar jugadores según estilo de juego y necesidades
-% recomendar_jugador(X, r0, r1, r2, r3, r4, r5, r6, r7, Z) r = respuesta del usuario
+% recomendar_jugador(X, r0, r1, r2, r3, r4, r5, r6, r7, Equipo, Posicion, Edad, Nacionalidad) r = respuesta del usuario
 
-recomendar_jugador(Jugador, MiEquipo, Estilo, Habilidad, Rendimiento, Disciplina, EsTitular, Perfil, JovenPromesa, Equipo) :-
+recomendar_jugador(Jugador, MiEquipo, Estilo, Habilidad, Rendimiento, Disciplina, EsTitular, Perfil, JovenPromesa, Equipo, Posicion, Edad, Nacionalidad) :-
     % Hay que usar distinct() para evitar duplicados
     
     % El Guadalajara juega sólo con jugadores mexicanos

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronRight, User, UserPlus, Shield, ShieldCheck, Goal, Star, ArrowLeft, Download, Info } from 'lucide-react';
 
 export default function RecomendadorJugadores() {
@@ -9,6 +9,65 @@ export default function RecomendadorJugadores() {
 
   // Estado para controlar si estamos en la página de resultados
   const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  const peticionJugadores = async () => {
+    // probando con un get
+    try {
+      const response = await fetch('/api', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      console.log("Respuesta de Prolog de la API:");
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.error("Error al obtener los jugadores:", error);
+      return [];
+    }
+  }
+
+  const getJugadores = async () => {
+    const res = await peticionJugadores();
+    const data = res.answers;
+
+    // mapeando cada string de respuestas
+    const jugadores = data.map((jugadorStr) => {
+      const propiedades = jugadorStr.split(', ');  // se obtienen las variables
+      const jugador = {}
+
+      // Pasando por cada propiedad del jugador
+      propiedades.forEach((prop) => {
+        const [clave, valor] = prop.split(' = ');
+        
+        switch (clave){
+          case 'Jugador': 
+            jugador.nombre = valor;
+          break;
+
+          case 'Equipo':
+            jugador.equipo = valor;
+            break;
+
+          case 'Edad':
+            jugador.edad = valor;
+            break;
+        }
+      })
+
+      return jugador;
+    });
+
+    console.log(jugadores);
+
+  }
+
+  useEffect(() => {
+    getJugadores();
+  }, []);
 
   // Lista de preguntas y sus respectivas opciones
   const questions = [
@@ -173,7 +232,20 @@ export default function RecomendadorJugadores() {
     } else {
       // Mostrar la página de resultados
       console.log("Respuestas finales:", nuevasRespuestas);
-      let consulta = `recomendar_jugador(Jugador, ${nuevasRespuestas[0]}, ${nuevasRespuestas[1]}, ${nuevasRespuestas[2]}, ${nuevasRespuestas[3]}, ${nuevasRespuestas[4]}, ${nuevasRespuestas[5]}, ${nuevasRespuestas[6]}, ${nuevasRespuestas[7]}, Equipo)`;
+      let consulta = `recomendar_jugador(Jugador,
+      ${nuevasRespuestas[0]},
+      ${nuevasRespuestas[1]},
+      ${nuevasRespuestas[2]},
+      ${nuevasRespuestas[3]},
+      ${nuevasRespuestas[4]},
+      ${nuevasRespuestas[5]},
+      ${nuevasRespuestas[6]},
+      ${nuevasRespuestas[7]},
+      Equipo,
+      Posicion,
+      Edad,
+      Nacionalidad
+      ).`;
       // console.log(`formato para prolog: ${consulta}`)
       console.log("Consulta Prolog:", consulta);
       setMostrarResultados(true);
@@ -188,12 +260,16 @@ export default function RecomendadorJugadores() {
   };
 
   // Obtener jugadores recomendados basados en las respuestas
-  const obtenerJugadoresRecomendados = () => {
+  const obtenerJugadoresRecomendados = async () => {
     // Obtener la posición seleccionada (respuesta a la primera pregunta)
-    const posicion = respuestas[0];
+    // const posicion = respuestas[0];
 
-    // En una implementación real, filtrarías por edad y presupuesto también
-    return jugadoresRecomendados[posicion] || [];
+    const data = await peticionJugadores();
+    // console.log("Respuesta de Prolog de la API:");
+    // console.log(data);
+
+    // // En una implementación real, filtrarías por edad y presupuesto también
+    // return jugadoresRecomendados[posicion] || [];
   };
 
   // Obtener la pregunta actual

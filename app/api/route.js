@@ -1,6 +1,7 @@
 // ruta: /api
 import * as pl from 'tau-prolog';
 import { readFile } from 'fs/promises';
+
 import { join } from 'path';
 
 export async function GET() {
@@ -11,8 +12,6 @@ export async function GET() {
             session.answer({
                 success: function(answer) {
                     let formattedAnswer = session.format_answer(answer);
-                    formattedAnswer = formattedAnswer.split(' ');
-                    formattedAnswer = formattedAnswer[2];
 
                     answers.push(formattedAnswer);
                     getAnswers(session); // Llamada recursiva
@@ -47,13 +46,15 @@ export async function GET() {
         try {
             // Crear una nueva sesión de Prolog
             const session = pl.create();
+            
 
             // Cargar el archivo .pl desde el sistema de archivos
             const filePath = join(process.cwd(), 'app', 'prolog', 'ligamx.pl');
             const program = await readFile(filePath, 'utf-8');
             
             const query = `
-            pertenece_a(JUGADOR, cruz_azul).
+            jugador(Jugador, mex, po, Edad),
+            pertenece_a(Jugador, Equipo).
             `;
 
             session.consult(program, {
@@ -89,3 +90,108 @@ export async function GET() {
         }
     });
 }
+
+
+// export async function POST(request) {
+//    try {
+//     const { query } = await request.json();
+
+//     if (!query) {
+//       return new Response(JSON.stringify({ error: 'Falta la consulta Prolog en el cuerpo' }), {
+//         status: 400,
+//         headers: { 'Content-Type': 'application/json' }
+//       });
+//     }
+
+//     const session = pl.create();
+//     const show = x => console.log(session.format_answer(x));
+    
+//     const filePath = join(process.cwd(), 'app', 'prolog', 'ligamx.pl');
+//     const program = await readFile(filePath, 'utf-8');
+
+//     session.consult(program, {
+//         success: function() {
+//             session.query(request, {
+//                 success: function(){
+//                     session.answer(show);
+//                 }
+//             })
+//         }
+//     })
+//     } catch (error) {
+//         return new Response(JSON.stringify({ error: error.toStrin() }), {
+//             status: 500,
+//             headers: { 'Content-Type': 'application/json' }
+//         });
+//   }
+// }
+
+export async function POST(request) {
+  try {
+    const { query } = await request.json();
+
+    if (!query) {
+      return new Response(
+        JSON.stringify({ error: 'Falta la consulta Prolog en el cuerpo' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const session = pl.create();
+
+
+    // Promisificar consult
+    const consultPromise = () =>
+      new Promise((resolve, reject) => {
+        session.consult('app/prolog/ligamx.pl', {
+          success: () => resolve(),
+          error: (err) => reject(err),
+        });
+      });
+
+    const queryPromise = () =>
+      new Promise((resolve, reject) => {
+        session.query(query, {
+          success: () => resolve(),
+          error: (err) => reject(err),
+        });
+      });
+
+    const answersPromise = () =>
+      new Promise((resolve) => {
+        const results = [];
+
+        const callback = (answer) => {
+          if (answer === false) {
+            resolve(results);
+          } else {
+            results.push(session.format_answer(answer));
+            session.answer(callback);
+          }
+        };
+
+        session.answer(callback);
+      });
+
+    await consultPromise();
+    await queryPromise();
+    const results = await answersPromise();
+
+    return new Response(JSON.stringify({ results }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.toString() }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+}
+
