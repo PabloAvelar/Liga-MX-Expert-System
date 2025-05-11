@@ -3,6 +3,8 @@ import * as pl from 'tau-prolog';
 import { readFile } from 'fs/promises';
 
 import { join } from 'path';
+import 'tau-prolog/modules/lists.js';
+import 'tau-prolog/modules/js.js';
 
 export async function GET() {
     return new Promise(async (resolve) => {
@@ -91,41 +93,6 @@ export async function GET() {
     });
 }
 
-
-// export async function POST(request) {
-//    try {
-//     const { query } = await request.json();
-
-//     if (!query) {
-//       return new Response(JSON.stringify({ error: 'Falta la consulta Prolog en el cuerpo' }), {
-//         status: 400,
-//         headers: { 'Content-Type': 'application/json' }
-//       });
-//     }
-
-//     const session = pl.create();
-//     const show = x => console.log(session.format_answer(x));
-    
-//     const filePath = join(process.cwd(), 'app', 'prolog', 'ligamx.pl');
-//     const program = await readFile(filePath, 'utf-8');
-
-//     session.consult(program, {
-//         success: function() {
-//             session.query(request, {
-//                 success: function(){
-//                     session.answer(show);
-//                 }
-//             })
-//         }
-//     })
-//     } catch (error) {
-//         return new Response(JSON.stringify({ error: error.toStrin() }), {
-//             status: 500,
-//             headers: { 'Content-Type': 'application/json' }
-//         });
-//   }
-// }
-
 export async function POST(request) {
   try {
     const { query } = await request.json();
@@ -142,7 +109,7 @@ export async function POST(request) {
 
     const session = pl.create();
 
-
+    console.log(query)
     // Promisificar consult
     const consultPromise = () =>
       new Promise((resolve, reject) => {
@@ -166,8 +133,12 @@ export async function POST(request) {
 
         const callback = (answer) => {
           if (answer === false) {
+            console.log("ENTRA: answer === false")
             resolve(results);
+            console.log("RESULTADOS XD")
+            console.log(results);
           } else {
+            console.log("NO ENTRA")
             results.push(session.format_answer(answer));
             session.answer(callback);
           }
@@ -179,6 +150,7 @@ export async function POST(request) {
     await consultPromise();
     await queryPromise();
     const results = await answersPromise();
+    console.log(results)
 
     return new Response(JSON.stringify({ results }), {
       status: 200,

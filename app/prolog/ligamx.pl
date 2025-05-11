@@ -5037,6 +5037,8 @@ pertenece_a(erubiel_castro, santos).
 pertenece_a(isaac_gomez, santos).
 pertenece_a(alex_valencia, santos).
 
+%distinct(X) :-
+%    X, true, _).
 
 % -------------------------------
 % REGLAS PRINCIPALES DE RECOMENDACIÓN
@@ -5058,22 +5060,22 @@ recomendar_jugador(Jugador, MiEquipo, Estilo, Habilidad, Rendimiento, Disciplina
     MiEquipo \= Equipo,
 
     % Reglas a consultar
-    distinct(cumple_estilo(Jugador, Estilo)),
-    distinct(habilidad(Jugador, Habilidad)), 
-    distinct(rendimiento_por_partido(Jugador, Rendimiento)),
+    cumple_estilo(Jugador, Estilo),
+    habilidad(Jugador, Habilidad), 
+    rendimiento_por_partido(Jugador, Rendimiento),
     
-    distinct(disciplina(Jugador, Disciplina)),
+    disciplina(Jugador, Disciplina),
 
     % si_titular
     (EsTitular =  si_titular ->
-       distinct(tiene_consistencia(Jugador)) ;
+       tiene_consistencia(Jugador) ;
       true),
 
-    distinct(perfil_jugador(Jugador, Perfil)), 
+    perfil_jugador(Jugador, Perfil), 
 
     % Si JovenPromesa es "si_joven_promesa", entonces ejecuta jugador_potencial_alto
     (JovenPromesa = si_joven_promesa -> 
-        distinct(jugador_potencial_alto(Jugador, Perfil)) ; 
+        jugador_potencial_alto(Jugador, Perfil) ; 
         true)
 
     % DEBUG: Fin de la regla
