@@ -5037,9 +5037,6 @@ pertenece_a(erubiel_castro, santos).
 pertenece_a(isaac_gomez, santos).
 pertenece_a(alex_valencia, santos).
 
-%distinct(X) :-
-%    X, true, _).
-
 % -------------------------------
 % REGLAS PRINCIPALES DE RECOMENDACIÓN
 % -------------------------------
@@ -5049,11 +5046,11 @@ pertenece_a(alex_valencia, santos).
 recomendar_jugador(Jugador, MiEquipo, Estilo, Habilidad, Rendimiento, Disciplina, EsTitular, Perfil, JovenPromesa, Equipo, Posicion, Edad, Nacionalidad) :-
     % Hay que usar distinct() para evitar duplicados
     
-    % El Guadalajara juega sólo con jugadores mexicanos
+    %El Guadalajara juega sólo con jugadores mexicanos
     (MiEquipo = guadalajara ->
-    jugador(Jugador, mex, _, _)
+    jugador(Jugador, mex, Posicion, Edad)
     ;
-    jugador(Jugador, _, _, _)
+    jugador(Jugador, Nacionalidad, Posicion, Edad)
     ),
     
     pertenece_a(Jugador, Equipo),

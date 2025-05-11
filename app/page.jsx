@@ -10,19 +10,20 @@ export default function RecomendadorJugadores() {
   // Estado para controlar si estamos en la página de resultados
   const [mostrarResultados, setMostrarResultados] = useState(false);
 
-  const peticionJugadores = async () => {
+  const peticionJugadores = async (consulta) => {
     // probando con un get
     try {
       const response = await fetch('/api', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          query: consulta
+        })
       });
 
       const data = await response.json();
-      console.log("Respuesta de Prolog de la API:");
-      console.log(data);
       return data;
     } catch (error) {
       console.error("Error al obtener los jugadores:", error);
@@ -42,11 +43,11 @@ export default function RecomendadorJugadores() {
       // Pasando por cada propiedad del jugador
       propiedades.forEach((prop) => {
         const [clave, valor] = prop.split(' = ');
-        
-        switch (clave){
-          case 'Jugador': 
+
+        switch (clave) {
+          case 'Jugador':
             jugador.nombre = valor;
-          break;
+            break;
 
           case 'Equipo':
             jugador.equipo = valor;
@@ -64,10 +65,6 @@ export default function RecomendadorJugadores() {
     console.log(jugadores);
 
   }
-
-  useEffect(() => {
-    getJugadores();
-  }, []);
 
   // Lista de preguntas y sus respectivas opciones
   const questions = [
@@ -231,24 +228,11 @@ export default function RecomendadorJugadores() {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       // Mostrar la página de resultados
-      console.log("Respuestas finales:", nuevasRespuestas);
-      let consulta = `recomendar_jugador(Jugador,
-      ${nuevasRespuestas[0]},
-      ${nuevasRespuestas[1]},
-      ${nuevasRespuestas[2]},
-      ${nuevasRespuestas[3]},
-      ${nuevasRespuestas[4]},
-      ${nuevasRespuestas[5]},
-      ${nuevasRespuestas[6]},
-      ${nuevasRespuestas[7]},
-      Equipo,
-      Posicion,
-      Edad,
-      Nacionalidad
-      ).`;
-      // console.log(`formato para prolog: ${consulta}`)
-      console.log("Consulta Prolog:", consulta);
+
+
       setMostrarResultados(true);
+
+      obtenerJugadoresRecomendados();
     }
   };
 
@@ -261,15 +245,30 @@ export default function RecomendadorJugadores() {
 
   // Obtener jugadores recomendados basados en las respuestas
   const obtenerJugadoresRecomendados = async () => {
+
+    function onlyUnique(value, index, self) {
+      return self.indexOf(value) === index;
+    }
+
+    console.log("Respuestas finales:", respuestas);
+    let consulta = `recomendar_jugador(Jugador, ${respuestas[0]}, ${respuestas[1]}, ${respuestas[2]}, ${respuestas[3]}, ${respuestas[4]}, ${respuestas[5]}, ${respuestas[6]}, ${respuestas[7]}, Equipo, Posicion, Edad, Nacionalidad).`;
+    console.log("Consulta Prolog:", consulta);
+
+    const res = await peticionJugadores(consulta);
+    
+    const unique = res.results.filter(onlyUnique);
+    console.info(unique)
+    console.log("Respuesta Prolog:", unique);
+
     // Obtener la posición seleccionada (respuesta a la primera pregunta)
-    // const posicion = respuestas[0];
+    const posicion = respuestas[0];
 
-    const data = await peticionJugadores();
-    // console.log("Respuesta de Prolog de la API:");
-    // console.log(data);
+    // En una implementación real, filtrarías por edad y presupuesto también
+    //return jugadoresRecomendados[posicion] || [];
 
-    // // En una implementación real, filtrarías por edad y presupuesto también
-    // return jugadoresRecomendados[posicion] || [];
+
+
+    // return 
   };
 
   // Obtener la pregunta actual
@@ -384,43 +383,6 @@ export default function RecomendadorJugadores() {
               {/* Jugadores recomendados */}
               <h3 className="text-2xl font-bold mb-6 text-gray-800">Jugadores recomendados</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {obtenerJugadoresRecomendados().map((jugador, index) => (
-                  <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                    <div className="relative">
-                      <img
-                        src={jugador.imagen}
-                        alt={jugador.nombre}
-                        className="w-full h-64 object-cover"
-                      />
-                      <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 m-2 rounded-full text-sm font-bold">
-                        {jugador.valor}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h4 className="text-xl font-bold mb-1">{jugador.nombre}</h4>
-                      <div className="flex items-center mb-2 text-gray-600">
-                        <span>{jugador.edad} años</span>
-                        <span className="mx-2">•</span>
-                        <span>{jugador.nacionalidad}</span>
-                        <span className="mx-2">•</span>
-                        <span>{jugador.equipo}</span>
-                      </div>
-                      <p className="text-gray-700 mb-4">{jugador.descripcion}</p>
-                      <div className="flex justify-between">
-                        <button className="flex items-center text-blue-600 hover:text-blue-800 transition-colors">
-                          <Info size={16} className="mr-1" />
-                          <span className="text-sm">Más detalles</span>
-                        </button>
-                        <button className="flex items-center text-green-600 hover:text-green-800 transition-colors">
-                          <Download size={16} className="mr-1" />
-                          <span className="text-sm">Ficha técnica</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Explicación de la elección */}
