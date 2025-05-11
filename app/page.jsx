@@ -402,25 +402,6 @@ export default function RecomendadorJugadores() {
                 <Card jugadoresRecomendados={jugadoresRecomendados} />
               )}
 
-
-            </div>
-
-            {/* Explicación de la elección */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-              <h2 className="text-2xl font-bold mb-6 text-gray-800">
-                Explicación de la elección de los jugadores
-              </h2>
-              <div className="prose max-w-none text-gray-700">
-                {/* <p>Los jugadores recomendados han sido seleccionados considerando los siguientes criterios basados en tus preferencias:</p>
-                <ul className="list-disc pl-6 mt-4 space-y-2">
-                  <li><strong>Posición:</strong> Se han filtrado jugadores que se desempeñan principalmente como {traducirRespuesta(0, respuestas[0])}.</li>
-                  <li><strong>Rango de edad:</strong> Priorizamos jugadores que se encuentran en el rango de {traducirRespuesta(1, respuestas[1])}.</li>
-                  <li><strong>Presupuesto:</strong> Los jugadores recomendados se ajustan a un presupuesto {traducirRespuesta(2, respuestas[2])}.</li>
-                  <li><strong>Rendimiento reciente:</strong> Se han considerado estadísticas de las últimas temporadas para evaluar su consistencia y proyección.</li>
-                  <li><strong>Adaptabilidad:</strong> Se ha valorado su capacidad para adaptarse a la Liga MX y al fútbol mexicano.</li>
-                </ul>
-                <p className="mt-4">Esta selección se ha realizado analizando datos estadísticos de diversas ligas internacionales y el mercado actual de traspasos.</p> */}
-              </div>
             </div>
           </>
         )}

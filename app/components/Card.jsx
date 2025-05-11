@@ -15,7 +15,7 @@ export default function Card({ jugadoresRecomendados }) {
                 <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                     <div className="relative">
                         <img
-                            src={jugador?.imagen}
+                            src={"/assets/sinfoto.png"}
                             alt={jugador.nombre}
                             className="w-full h-64 object-cover"
                         />
