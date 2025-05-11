@@ -3,12 +3,17 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, User, UserPlus, Shield, ShieldCheck, Goal, Star, ArrowLeft, Download, Info } from 'lucide-react';
 
+import Card from '../app/components/Card';
+
 export default function RecomendadorJugadores() {
   // Estado para controlar la pregunta actual
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
   // Estado para controlar si estamos en la página de resultados
   const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  // Estado para almacenar los jugadores recomendados
+  const [jugadoresRecomendados, setJugadoresRecomendados] = useState([]);
 
   const peticionJugadores = async (consulta) => {
     // probando con un get
@@ -31,10 +36,7 @@ export default function RecomendadorJugadores() {
     }
   }
 
-  const getJugadores = async () => {
-    const res = await peticionJugadores();
-    const data = res.answers;
-
+  const getJugadoresPropiedades = (data) => {
     // mapeando cada string de respuestas
     const jugadores = data.map((jugadorStr) => {
       const propiedades = jugadorStr.split(', ');  // se obtienen las variables
@@ -46,7 +48,11 @@ export default function RecomendadorJugadores() {
 
         switch (clave) {
           case 'Jugador':
-            jugador.nombre = valor;
+            jugador.nombre = valor.replace("_", " ");
+            break;
+
+          case 'Posicion':
+            jugador.posicion = valor;
             break;
 
           case 'Equipo':
@@ -56,14 +62,18 @@ export default function RecomendadorJugadores() {
           case 'Edad':
             jugador.edad = valor;
             break;
+
+          case 'Nacionalidad':
+            jugador.nacionalidad = valor;
+            break;
         }
       })
 
       return jugador;
     });
 
-    console.log(jugadores);
-
+    console.log("get jugadoresPropiedades - Array.isArray:", Array.isArray(jugadores));
+    return jugadores;
   }
 
   // Lista de preguntas y sus respectivas opciones
@@ -157,57 +167,57 @@ export default function RecomendadorJugadores() {
   ];
 
   // Base de datos simulada de jugadores recomendados
-  const jugadoresRecomendados = {
-    "delantero": [
-      {
-        nombre: "Carlos Vela",
-        imagen: "/api/placeholder/300/300",
-        edad: 25,
-        nacionalidad: "México",
-        equipo: "LAFC",
-        valor: "12M USD",
-        descripcion: "Delantero veloz con excelente definición y regate. Especialista en tiros libres y disparos desde fuera del área."
-      },
-      {
-        nombre: "Raúl Jiménez",
-        imagen: "/api/placeholder/300/300",
-        edad: 29,
-        nacionalidad: "México",
-        equipo: "Fulham",
-        valor: "18M USD",
-        descripcion: "Delantero potente con gran juego aéreo. Excelente pivote y capacidad para asociarse con los mediocampistas."
-      },
-      {
-        nombre: "Santiago Giménez",
-        imagen: "/api/placeholder/300/300",
-        edad: 21,
-        nacionalidad: "México",
-        equipo: "Feyenoord",
-        valor: "8M USD",
-        descripcion: "Joven promesa con gran capacidad goleadora. Rápido y con buen posicionamiento en el área."
-      }
-    ],
-    "medio-ofensivo": [
-      {
-        nombre: "Diego Lainez",
-        imagen: "/api/placeholder/300/300",
-        edad: 22,
-        nacionalidad: "México",
-        equipo: "Tigres",
-        valor: "7M USD",
-        descripcion: "Mediocampista habilidoso con gran capacidad de desborde y visión de juego. Especialista en el último pase."
-      },
-      {
-        nombre: "Orbelín Pineda",
-        imagen: "/api/placeholder/300/300",
-        edad: 26,
-        nacionalidad: "México",
-        equipo: "AEK Atenas",
-        valor: "9M USD",
-        descripcion: "Mediocampista versátil con llegada al área y buen disparo de media distancia. Trabajador en ambas fases del juego."
-      }
-    ]
-  };
+  // const jugadoresRecomendados = {
+  //   "delantero": [
+  //     {
+  //       nombre: "Carlos Vela",
+  //       imagen: "/api/placeholder/300/300",
+  //       edad: 25,
+  //       nacionalidad: "México",
+  //       equipo: "LAFC",
+  //       valor: "12M USD",
+  //       descripcion: "Delantero veloz con excelente definición y regate. Especialista en tiros libres y disparos desde fuera del área."
+  //     },
+  //     {
+  //       nombre: "Raúl Jiménez",
+  //       imagen: "/api/placeholder/300/300",
+  //       edad: 29,
+  //       nacionalidad: "México",
+  //       equipo: "Fulham",
+  //       valor: "18M USD",
+  //       descripcion: "Delantero potente con gran juego aéreo. Excelente pivote y capacidad para asociarse con los mediocampistas."
+  //     },
+  //     {
+  //       nombre: "Santiago Giménez",
+  //       imagen: "/api/placeholder/300/300",
+  //       edad: 21,
+  //       nacionalidad: "México",
+  //       equipo: "Feyenoord",
+  //       valor: "8M USD",
+  //       descripcion: "Joven promesa con gran capacidad goleadora. Rápido y con buen posicionamiento en el área."
+  //     }
+  //   ],
+  //   "medio-ofensivo": [
+  //     {
+  //       nombre: "Diego Lainez",
+  //       imagen: "/api/placeholder/300/300",
+  //       edad: 22,
+  //       nacionalidad: "México",
+  //       equipo: "Tigres",
+  //       valor: "7M USD",
+  //       descripcion: "Mediocampista habilidoso con gran capacidad de desborde y visión de juego. Especialista en el último pase."
+  //     },
+  //     {
+  //       nombre: "Orbelín Pineda",
+  //       imagen: "/api/placeholder/300/300",
+  //       edad: 26,
+  //       nacionalidad: "México",
+  //       equipo: "AEK Atenas",
+  //       valor: "9M USD",
+  //       descripcion: "Mediocampista versátil con llegada al área y buen disparo de media distancia. Trabajador en ambas fases del juego."
+  //     }
+  //   ]
+  // };
 
   // Datos para otras posiciones podrían agregarse de manera similar
 
@@ -232,7 +242,13 @@ export default function RecomendadorJugadores() {
 
       setMostrarResultados(true);
 
-      obtenerJugadoresRecomendados();
+      const recomendados = obtenerJugadoresRecomendados();
+      recomendados.then((jugadores) => {
+        console.log("[handleSeleccion] Jugadores recomendados:", jugadores);
+        setJugadoresRecomendados(jugadores);
+      }).catch((error) => {
+        console.error("[handleSeleccion] Error al obtener jugadores recomendados:", error);
+      });
     }
   };
 
@@ -255,20 +271,16 @@ export default function RecomendadorJugadores() {
     console.log("Consulta Prolog:", consulta);
 
     const res = await peticionJugadores(consulta);
-    
+
     const unique = res.results.filter(onlyUnique);
     console.info(unique)
     console.log("Respuesta Prolog:", unique);
 
-    // Obtener la posición seleccionada (respuesta a la primera pregunta)
-    const posicion = respuestas[0];
+    let jugadoresPropiedades = getJugadoresPropiedades(unique);
 
-    // En una implementación real, filtrarías por edad y presupuesto también
-    //return jugadoresRecomendados[posicion] || [];
+    console.log("Jugadores obtenidos:", jugadoresPropiedades);
 
-
-
-    // return 
+    return jugadoresPropiedades;
   };
 
   // Obtener la pregunta actual
@@ -382,6 +394,14 @@ export default function RecomendadorJugadores() {
 
               {/* Jugadores recomendados */}
               <h3 className="text-2xl font-bold mb-6 text-gray-800">Jugadores recomendados</h3>
+              {!jugadoresRecomendados || jugadoresRecomendados.length === 0 && (
+                <p className="text-center text-gray-500">No se encontraron jugadores recomendados.</p>
+              )}
+
+              {jugadoresRecomendados && jugadoresRecomendados.length > 0 && (
+                <Card jugadoresRecomendados={jugadoresRecomendados} />
+              )}
+
 
             </div>
 
@@ -391,7 +411,7 @@ export default function RecomendadorJugadores() {
                 Explicación de la elección de los jugadores
               </h2>
               <div className="prose max-w-none text-gray-700">
-                <p>Los jugadores recomendados han sido seleccionados considerando los siguientes criterios basados en tus preferencias:</p>
+                {/* <p>Los jugadores recomendados han sido seleccionados considerando los siguientes criterios basados en tus preferencias:</p>
                 <ul className="list-disc pl-6 mt-4 space-y-2">
                   <li><strong>Posición:</strong> Se han filtrado jugadores que se desempeñan principalmente como {traducirRespuesta(0, respuestas[0])}.</li>
                   <li><strong>Rango de edad:</strong> Priorizamos jugadores que se encuentran en el rango de {traducirRespuesta(1, respuestas[1])}.</li>
@@ -399,7 +419,7 @@ export default function RecomendadorJugadores() {
                   <li><strong>Rendimiento reciente:</strong> Se han considerado estadísticas de las últimas temporadas para evaluar su consistencia y proyección.</li>
                   <li><strong>Adaptabilidad:</strong> Se ha valorado su capacidad para adaptarse a la Liga MX y al fútbol mexicano.</li>
                 </ul>
-                <p className="mt-4">Esta selección se ha realizado analizando datos estadísticos de diversas ligas internacionales y el mercado actual de traspasos.</p>
+                <p className="mt-4">Esta selección se ha realizado analizando datos estadísticos de diversas ligas internacionales y el mercado actual de traspasos.</p> */}
               </div>
             </div>
           </>
